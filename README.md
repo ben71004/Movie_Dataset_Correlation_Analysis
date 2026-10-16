@@ -1,118 +1,105 @@
-# Movie Industry Correlation Analysis
+# Movie Dataset Correlation Analysis
 
 ## Description
 
-An exploratory data analysis project in Python that investigates which factors are related to a movie's financial success. Using a dataset of movies, the notebook cleans the data, fixes column types, extracts release years, and then measures how numeric features such as budget, votes, score, runtime and gross revenue relate to each other. The results are shown as a correlation matrix and a heatmap.
+This project is an exploratory data analysis of a movies dataset, written in Python in a Jupyter notebook. It cleans the data, fixes column types, extracts the release year from a text field, and then uses correlation analysis to find which features are most closely related to a film's gross earnings. The results are shown as scatter plots, a regression plot and correlation heatmaps.
 
-The project is a practical walkthrough of a standard data analysis workflow: load, inspect, clean, transform, and visualize.
+The central question is: what drives a movie's gross revenue? The notebook looks at budget, votes, score, runtime and the production company.
 
-## Goals
+## Notebook
 
-1. Load and inspect the movies dataset.
-2. Find and handle missing values.
-3. Convert columns to appropriate data types (for example, budget and gross to integers).
-4. Extract a clean release year from the text `released` column.
-5. Measure correlations between numeric variables.
-6. Visualize the correlations with a heatmap and draw conclusions.
+`Movie_Dataset_Correlation_Analysis.ipynb`
 
 ## Dataset
 
-The analysis uses `movies.csv`, which contains one row per movie. Typical columns include:
+The analysis uses `movies.csv`, with one row per movie. The columns used or referenced in the notebook include:
 
 | Column | Meaning |
 | --- | --- |
 | name | Movie title |
-| rating | Age rating (for example PG, R) |
+| rating | Age rating |
 | genre | Main genre |
-| year | Release year |
-| released | Full release date with country |
-| score | Audience rating score |
+| year | Release year as listed in the file |
+| released | Release date with country, for example `June 13, 1980 (United States)` |
+| score | Audience score |
 | votes | Number of votes |
 | director, writer, star | Key people involved |
 | country | Country of origin |
 | budget | Production budget |
-| gross | Worldwide gross revenue |
+| gross | Gross earnings |
 | company | Production company |
 | runtime | Length in minutes |
 
-Place `movies.csv` in the same folder as the notebook, or update the file path in the loading cell.
+Update the file path in the data loading cell to match where `movies.csv` is stored on your machine.
 
 ## Requirements
 
-- Python 3.12 or 3.13 (very new Python versions may lack prebuilt packages for Jupyter dependencies on Windows)
-- JupyterLab
-- pandas
-- numpy
-- seaborn
-- matplotlib
-- openpyxl (only needed if you read Excel files)
+Python 3.12 or 3.13 is recommended. The notebook installs its own dependencies in the first cell:
 
-## Setup
-
-```bash
-# create and activate a virtual environment (Windows)
-py -3.13 -m venv jupyter-env
-jupyter-env\Scripts\activate
-
-# install the libraries
-pip install jupyterlab pandas numpy seaborn matplotlib openpyxl
-
-# launch Jupyter from the project folder
-jupyter lab
+```
+%pip install pandas numpy seaborn matplotlib openpyxl
 ```
 
-## Usage
+Libraries used: pandas, numpy, seaborn, matplotlib (including pyplot and mlab) and openpyxl.
 
-1. Open the notebook in JupyterLab.
-2. Make sure `movies.csv` is in the project folder.
-3. Run the cells from top to bottom.
+## How to Run
 
-## Method
+1. Install JupyterLab in a virtual environment and launch it from the project folder with `jupyter lab`.
+2. Open `Movie_Dataset_Correlation_Analysis.ipynb`.
+3. Edit the path in the `pd.read_csv` cell so it points to your copy of `movies.csv`.
+4. Run the cells from top to bottom.
 
-**Loading.** The data is read with `pd.read_csv`.
+## Workflow
 
-**Missing values.** Missing values are counted with `df.isna().sum()`. Columns such as budget contain blanks, so they are stored as floats. They are either dropped, filled, or converted with the nullable `Int64` type before casting to integers.
+**1. Setup.** The libraries are imported, the `ggplot` plot style is applied, and the default figure size is set to 12 by 8.
 
-**Data types.** Numeric columns are converted to integers so they behave correctly in calculations and charts.
+**2. Loading and inspecting.** The data is read with `pd.read_csv` and previewed with `df.head()`. The percentage of missing values in each column is printed, and `df.dtypes` is used to check the data types.
 
-**Year extraction.** The year is pulled from the `released` text (for example, `June 13, 1980 (United States)`) using string operations or a regular expression, then converted to a number.
+**3. Cleaning.** Rows with missing `budget` or `gross` values are dropped, and both columns are converted to `int64`. Dropping the missing rows first is what makes the integer conversion possible, because integer columns cannot hold missing values.
 
-**Correlation.** Correlation is calculated only on numeric columns:
+**4. Year correction.** A new column, `year_corrected`, is built from the `released` text. The string is split at the opening bracket to remove the country, then split at the comma to keep only the year.
 
-```python
-df.corr(numeric_only=True)
-```
+**5. Sorting and duplicates.** The data is sorted by `gross` in descending order, the display limit for rows is removed, and the unique production companies are listed.
 
-**Visualization.** The matrix is plotted as a heatmap:
+**6. Budget versus gross.** A matplotlib scatter plot and a seaborn regression plot (`sns.regplot`) show how budget relates to gross earnings.
 
-```python
-plt.figure(figsize=(8, 6))
-sns.heatmap(df.corr(numeric_only=True), annot=True, cmap='coolwarm')
-plt.show()
-```
+**7. Correlation of numeric features.** The Pearson correlation matrix is calculated with `df.corr(numeric_only=True, method='pearson')` and drawn as an annotated seaborn heatmap.
+
+**8. Including text columns.** Text columns such as company are converted to numeric category codes with `astype('category').cat.codes`, and the correlation matrix and heatmap are produced again so that categorical features can be compared as well.
+
+**9. Strongest relationships.** The correlation matrix is unstacked into pairs, sorted, and filtered to show pairs with a correlation above 0.5.
 
 ## Findings
 
-Fill in after running the analysis. Typical points to cover:
+The conclusions recorded in the notebook are:
 
-- Which variable correlates most strongly with gross revenue (budget and votes are common candidates).
-- Whether score is strongly related to revenue.
-- Any weak or surprising relationships.
+1. Budget and gross earnings show a high correlation.
+2. Votes and budget have the highest correlation with gross earnings.
+3. The production company has no meaningful correlation with gross earnings.
 
 ## Limitations
 
-- Correlation does not imply causation.
-- Rows with missing budget or gross values may be removed, which can bias results.
-- Budgets and revenues are not adjusted for inflation, so older and newer films are not directly comparable.
-- Text columns such as company or genre are not included in the numeric correlation unless they are encoded first, and the codes are arbitrary.
+1. Correlation does not show causation. A larger budget may go with higher earnings without causing them.
+2. Rows with a missing budget or gross value were removed, which may bias the results toward films with better record keeping.
+3. Budget and gross are not adjusted for inflation, so films from different decades are not directly comparable.
+4. The category codes used for text columns are arbitrary numbers, so the correlations involving them should be read with caution. A near zero value for company mainly shows that the numbering has no order, not that company never matters.
+5. The `year_corrected` column is stored as text, so it is not included in numeric correlations unless it is converted first.
 
 ## Possible Extensions
 
-- Encode categorical columns (genre, rating, company) and include them in the analysis.
-- Adjust budget and gross for inflation.
-- Compare correlations across decades or genres.
-- Build a simple regression model to predict gross revenue.
+1. Convert `year_corrected` to a number and include it in the correlations.
+2. Adjust budget and gross for inflation.
+3. Compare correlations by genre or decade.
+4. Build a regression model to predict gross earnings.
+
+## Acknowledgements
+
+This project follows the approach taught in the "Data Analyst Portfolio Project | Correlation in Python" video by Alex The Analyst: https://youtu.be/iPYVYBtUTyE
+
+The dataset is the Movies dataset published on Kaggle by danielgrijalvas: https://www.kaggle.com/datasets/danielgrijalvas/movies
+
+I worked through the project myself in JupyterLab, adapted the code to run on current versions of pandas and Python, and wrote this README, including the findings and limitations sections.
 
 ## Author
 
-Replace with your name and contact details.
+Benjamin Joseph
